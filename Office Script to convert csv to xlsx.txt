@@ -1,0 +1,50 @@
+function main(workbook: ExcelScript.Workbook, csv: string) {
+  let arr: string[][] = [];
+  let insideQuote = false;
+  let r = 0;
+  let c = 0;
+ 
+  for (let i = 0; i < csv.length; i++) {
+    let cChr = csv[i];
+    let nChr = csv[i + 1];
+ 
+    arr[r] = arr[r] || [];
+    arr[r][c] = arr[r][c] || '';
+ 
+    if (cChr == '"' && insideQuote && nChr == '"') {
+      arr[r][c] = arr[r][c] + cChr;
+      i++;
+      continue;
+    }
+ 
+    if (cChr == '"') {
+      insideQuote = !insideQuote;
+      continue;
+    }
+ 
+    if (cChr == ',' && !insideQuote) {
+      c++;
+      continue;
+    }
+ 
+    if (cChr == '\r' && nChr == '\n' && !insideQuote) {
+      r++;
+      c = 0;
+      i++;
+      continue;
+    }
+ 
+    if ((cChr == '\n' || cChr == '\r') && !insideQuote) {
+      r++;
+      c = 0;
+      continue;
+    }
+ 
+    arr[r][c] = arr[r][c] + cChr;
+  }
+ 
+  let defaultSheet = workbook.getWorksheets()[0];
+  defaultSheet.getRangeByIndexes(0, 0, arr.length, arr[0].length).setValues(arr);
+ 
+  return { arr };
+}
